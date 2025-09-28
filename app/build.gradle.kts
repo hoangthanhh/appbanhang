@@ -7,7 +7,7 @@ plugins {
 
 android {
     namespace = "utt.cntt.httt.appbanhang"
-    compileSdk = 36
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "utt.cntt.httt.appbanhang"
@@ -53,4 +53,10 @@ dependencies {
     implementation("com.squareup.retrofit2:retrofit:2.9.0")
     implementation("com.squareup.retrofit2:converter-gson:2.9.0")
     implementation("com.github.akarnokd:rxjava3-retrofit-adapter:3.0.0")
+}
+
+configurations.all {
+    resolutionStrategy {
+        force("androidx.activity:activity:1.8.0")
+    }
 }

@@ -60,7 +60,12 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
-        apiBanHang = RetrofitClient.getInstance(Utils.BASE_URL).create(ApiBanHang.class);
+        
+        try {
+            apiBanHang = RetrofitClient.getInstance(Utils.BASE_URL).create(ApiBanHang.class);
+        } catch (Exception e) {
+            Toast.makeText(getApplicationContext(), "Lỗi khởi tạo API: " + e.getMessage(), Toast.LENGTH_LONG).show();
+        }
 
         Anhxa();
         ActionBar();
@@ -71,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
             getSpMoi();
             getEventClick();
         } else {
-            Toast.makeText(getApplicationContext(), "ko co internet, vui long ket noi", Toast.LENGTH_SHORT).show();
+            Toast.makeText(getApplicationContext(), "Không có internet, vui lòng kết nối", Toast.LENGTH_LONG).show();
         }
     }
 
@@ -98,19 +103,30 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void getSpMoi() {
+        if (apiBanHang == null) {
+            Toast.makeText(getApplicationContext(), "API chưa được khởi tạo", Toast.LENGTH_SHORT).show();
+            return;
+        }
+        
         compositeDisposable.add(apiBanHang.getSpMoi()
                 .subscribeOn(Schedulers.io())
                 .observeOn(AndroidSchedulers.mainThread())
                 .subscribe(
                         sanPhamMoiModel -> {
-                            if (sanPhamMoiModel.isSuccess()) {
+                            if (sanPhamMoiModel != null && sanPhamMoiModel.isSuccess()) {
                                 mangSpMoi = sanPhamMoiModel.getResult();
-                                spAdapter = new SanPhamMoiAdapter(getApplicationContext(), mangSpMoi);
-                                recyclerViewManHinhChinh.setAdapter(spAdapter);
+                                if (mangSpMoi != null) {
+                                    spAdapter = new SanPhamMoiAdapter(getApplicationContext(), mangSpMoi);
+                                    recyclerViewManHinhChinh.setAdapter(spAdapter);
+                                } else {
+                                    Toast.makeText(getApplicationContext(), "Dữ liệu sản phẩm mới rỗng", Toast.LENGTH_SHORT).show();
+                                }
+                            } else {
+                                Toast.makeText(getApplicationContext(), "Không nhận được dữ liệu sản phẩm mới", Toast.LENGTH_SHORT).show();
                             }
                         },
                         throwable -> {
-                            Toast.makeText(getApplicationContext(), "Không kết nối được với server" + throwable.getMessage(), Toast.LENGTH_SHORT).show();
+                            Toast.makeText(getApplicationContext(), "Lỗi kết nối server: " + throwable.getMessage(), Toast.LENGTH_LONG).show();
                         }
                 ));
     }
@@ -129,6 +145,9 @@ public class MainActivity extends AppCompatActivity {
                         }
                 ));
     }
+
+
+
 
     private void ActionViewFlipper() {
         List<String> mangquangcao = new ArrayList<>();
